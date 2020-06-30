@@ -1,93 +1,169 @@
-<footer class="footer">
-  <div class="footer-inner">
-    <div class="beian"><a href="http://www.beian.miit.gov.cn" rel="noopener external nofollow noreferrer"
-        target="_blank" class="exturl">陕ICP备16017712号-1</a></div>
-    <div class="copyright">© 2017 – <span itemprop="copyrightYear">2020</span> <span class="with-love"><i
-          class="fa fa-heartbeat"></i> </span><span class="author" itemprop="copyrightHolder">Gao Yuting</span>
-    </div>
-  </div>
-</footer>
-<link rel="stylesheet"
-  href="https://fonts.googleapis.com/css2?family=Noto Serif SC:wght@400;500;700&display=swap&subset=latin,latin-ext">
-<link href="https://netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
-<script type="text/javascript">
-  function setDesc() {
-    $('#cnblogs_post_description').css('display','block')
-    $('#cnblogs_post_description').prepend('<h3 id="post-description-meta">摘 要</h3>')
-    $.ajax({
-      url: getAjaxBaseUrl() + "CategoriesTags.aspx",
-      type: "get",
-      contentType: "application/json; charset=utf-8",
-      data: {
-          blogId: cb_blogId,
-          postId: cb_entryId,
-      },
-      cache: !1,
-      dataType: "text",
-      timeout: 1e4,
-      success: function(n) {
-          n && $("#cnblogs_post_description").append(n.replace('EntryTag','post-keyword').replace('标签','关键词'))
-          $('#EntryTag').remove()
-      }
-    })
+<script>
+/**
+ * @config:avatar,github
+ */
+  var config = {
+    avatar:'https://pic.cnblogs.com/face/2002946/20200629092428.png',
+    github:'makergyt'
   }
-  function setFoot() {
-    $('.footnotes').prepend('<h2 id="-参考文献" class="footnotes-meta">参 考 文 献</h2>')
-  }
-  function setContent() {
-    $('#blog-news').prepend('<div id="post-toc-wrap"><h3 style="text-align:center">目录</h3></div>')
-    var captions_ori = $("#cnblogs_post_body h2"),
-      captions_ori2 = $("#cnblogs_post_body h3"),
-      captions = $("#cnblogs_post_body h2,#cnblogs_post_body h3").clone(),
-      content = $("<ol id='post-toc'></ol>");
-    
-    $("#post-toc-wrap").append(content.append(captions));
-    var index = -1,index2 = -1;
-    captions.replaceWith(function(){
-        var self = this;
-        if(self.tagName == "H2" || self.tagName == "h2"){
-            // 设置点击目录跳转
-            index += 1;
-            $('<a name="' + '_caption_' + index + '"></a>').insertBefore(captions_ori[index]); 
-            return '<li id="'+index+'li"><a href="#_caption_' + index + '">' + self.innerHTML + '</a><ol></ol></li>';
-        } else {
-          // add by summertime-wu 增加h3链接跳转
-          index2 += 1;
-          $('<a name="' + '_caption' + index2 + '"></a>').insertBefore(captions_ori2[index2]); 
-          $("#"+index+"li ol").append("<li><a href='#_caption" + index2 + "' style='color:#5f5f5f;'>" +self.innerHTML+"</a></li>");
-            return ;
-        }
-    });
+</script>
 
-    //通过滚动条控制导航条的展现隐藏
-    var oldScrollNum = 0;
-    window.onscroll = function(){
-      var t = document.documentElement.scrollTop || document.body.scrollTop;
-      //下滑
-      if (t>oldScrollNum) {
-        if (t>270) {
-          $("#post-toc-wrap").addClass("affix");
-        }
-      //上拉
-      }else{
-        if (t<=270) {
-          $("#post-toc-wrap").removeClass("affix");
-        }
-      }
-      oldScrollNum = t;
+<!-- 引入在线字体-->
+<link rel="stylesheet"
+href="https://fonts.googleapis.com/css2?family=Noto Serif SC:wght@400;500;700&display=swap&subset=latin,latin-ext">
+<!-- 引入图标库-->
+<link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<script type="text/javascript">
+
+// 如未做大幅修改，请保留下方内容
+$('#poweredby').append('&nbsp;&&nbsp;<a href="https://github.com/makergyt/cnblogs-theme-next">cnblogs-theme-next</a>')
+// 获取默认基础信息
+var isPost = $('.forFlow').find('#post_detail').length?true:false;
+var blogSlug = currentBlogApp;
+var footerOverTestArray = $($("#footer")[0].childNodes[2]).text().trim().split(" ");
+
+config = Object.assign({
+  siteTitle: $('#Header1_HeaderTitle').text(),
+  author:footerOverTestArray[footerOverTestArray.length - 1],
+  avatar:$('.author_avatar').attr('src'),
+  github:blogSlug
+}, config);
+
+var linkObject = document.createElement("link");
+  linkObject.rel = "shortcut icon";
+  linkObject.href = config.avatar;
+
+// var siteTitle = $('#Header1_HeaderTitle').text();
+// var footerOverTestArray = $($("#footer")[0].childNodes[2]).text().trim().split(" ");
+// var author = footerOverTestArray[footerOverTestArray.length - 1];
+// // var author = $('#profile_block a:first').text().trim(); // 时序不一致,有可能为空
+// var avatar = $('.author_avatar').attr('src')
+
+
+// 设置摘要
+function setDesc() {
+  $('#cnblogs_post_description').css('display', 'block')
+  $('#cnblogs_post_description').prepend('<h3 id="post-description-meta">摘 要</h3>')
+  // 由于标签是网络请求，可能在修改dom后返回，故重新请求后再修改
+  $.ajax({
+    url: getAjaxBaseUrl() + "CategoriesTags.aspx",
+    type: "get",
+    contentType: "application/json; charset=utf-8",
+    data: {
+      blogId: cb_blogId,
+      postId: cb_entryId,
+    },
+    cache: !1,
+    dataType: "text",
+    timeout: 1e4,
+    success: function (n) {
+      n && $("#cnblogs_post_description").append(n.replace('EntryTag', 'post-keyword').replace('标签', '关键词'))
+      $('#EntryTag').remove()
     }
+  })
+}
+// 设置参考文献标题
+function setFoot() {
+  $('.footnotes').prepend('<h2 id="-参考文献" class="footnotes-meta">参 考 文 献</h2>')
+}
+// 设置左侧目录
+function setContent() { 
+  if($('#post-toc-wrap').length) return;
+  var toc = $('<div id="post-toc-wrap"><h3 style="text-align:center">目录</h3></div>')
+  $('#blog-news').prepend(toc)
+  var captions_ori = $("#cnblogs_post_body h2"),
+    captions_ori2 = $("#cnblogs_post_body h3"),
+    captions = $("#cnblogs_post_body h2,#cnblogs_post_body h3").clone(),
+    content = $("<ol id='post-toc'></ol>");
+
+  toc.append(content.append(captions));
+  var index = -1, index2 = -1;
+  captions.replaceWith(function () {
+    var self = this;
+    if (self.tagName == "H2" || self.tagName == "h2") {
+      // 设置点击目录跳转
+      index += 1;
+      $('<a name="' + '_caption_' + index + '"></a>').insertBefore(captions_ori[index]);
+      return '<li id="' + index + 'li"><a href="#_caption_' + index + '">' + self.innerHTML + '</a><ol></ol></li>';
+    } else {
+      index2 += 1;
+      $('<a name="' + '_caption' + index2 + '"></a>').insertBefore(captions_ori2[index2]);
+      $("#" + index + "li ol").append("<li><a href='#_caption" + index2 + "' style='color:#5f5f5f;'>" + self.innerHTML + "</a></li>");
+      return;
+    }
+  });
+}
+function onScroll() {
+  // 上拉至指定位置贴顶
+  var oldScrollNum = 0;
+  window.onscroll = function () {
+    var t = document.documentElement.scrollTop || document.body.scrollTop;
+    if (t > oldScrollNum) {
+      if (t>135) {
+        $('.site-author').remove() 
+        setContent()
+      }
+      if (t > 270) {
+        $("#post-toc-wrap").addClass("affix");
+      }
+    } else {
+      if(t <= 135 ) {
+        $('#post-toc-wrap').remove()
+        setAuthor()
+      }
+      if (t <= 270) {
+        $("#post-toc-wrap").removeClass("affix");
+      }
+    }
+    oldScrollNum = t;
   }
-  function setAuthor() {
-    var html = $('#author_profile_info').html()
-    $('#post-toc-wrap').append('<h3 style="text-align:center">作者</h3>'+html)
-    $('#author_profile_info').remove()
-  }
-  if($('.forFlow').find('#post_detail').length) {
-    setTimeout(() => {
-      setFoot();
-      setDesc();
-      setContent();
-      setAuthor()
-    }, 1000);
-  }
+}
+function setAuthor() {
+  if($('.site-author').length) return;
+  var siteAuthor = $('<div class="site-author motion-element"><img class="site-author-image" src="'+config.avatar+'"><p class="site-author-name">'+config.author+'</p></div>');
+  siteAuthor.append('<div class="site-state">'+$('.blogStats').html()+'</div>')
+  $('#blog-news').prepend(siteAuthor)
+}
+// 设置导航区
+function setNav() {
+  $('.brand').attr('href','/'+blogSlug)
+  $('.site-title').text(config.siteTitle)
+  $('.menu-item-home a:first').attr('href','/'+blogSlug)
+  $('.menu-item-contact a:first').attr('href','https://msg.cnblogs.com/send/'+config.author)
+  $('.menu-item-subscribe a:first').attr('data-rss','https://www.cnblogs.com/'+blogSlug+'/rss/')
+}
+
+// 设置右上角github跳转链接
+function setGithub() {
+  $('.github-corner').attr('href', 'https://github.com/'+config.github)
+}
+// 在响应式设计中，菜单折叠打开事件
+function setToggle() {
+  document.querySelector('.site-nav-toggle .toggle').addEventListener('click', () => {
+    event.currentTarget.classList.toggle('toggle-close');
+    var e = document.querySelector('.site-nav'),
+      t = e.classList.contains('site-nav-on') ? 'slideUp' : 'slideDown';
+    'function' == typeof Velocity ? Velocity(e, t, {
+      duration: 200,
+      complete: function () {
+        e.classList.toggle('site-nav-on')
+      }
+    }) : e.classList.toggle('site-nav-on')
+  });
+}
+setGithub();
+setToggle();
+setNav();
+setTimeout(() => {
+  setAuthor();
+}, 500);
+// 只对文章页
+if (isPost) {
+  setFoot();
+  onScroll();
+  // 由于加载需要时间故增加延时后操作
+  setTimeout(() => {
+    setDesc();
+  }, 500);
+}
 </script>
