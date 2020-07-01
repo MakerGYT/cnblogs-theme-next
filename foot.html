@@ -1,169 +1,254 @@
 <script>
-/**
- * @config:avatar,github
- */
-  var config = {
-    avatar:'https://pic.cnblogs.com/face/2002946/20200629092428.png',
-    github:'makergyt'
+  /**
+   * @author:me@makergyt.com
+   * @version:2020-07-01
+   */
+  window.config = {
+    avatar: 'https://pic.cnblogs.com/face/2002946/20200629092428.png',
+    github: 'makergyt',
+    gallery: '1796566'
   }
 </script>
-
+<!-- 下方内容请勿擅自修改，除非知道明确含义，如进行完善和扩展，请fork源码(https://github.com/MakerGYT/cnblogs-theme-next)后提交pull request;-->
 <!-- 引入在线字体-->
 <link rel="stylesheet"
-href="https://fonts.googleapis.com/css2?family=Noto Serif SC:wght@400;500;700&display=swap&subset=latin,latin-ext">
+  href="https://fonts.googleapis.com/css2?family=Noto Serif SC:wght@400;500;700&display=swap&subset=latin,latin-ext">
 <!-- 引入图标库-->
 <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<!-- 更改高亮样式-->
+<link href="https://cdn.jsdelivr.net/npm/highlight.js@10.1.1/styles/github.min.css" rel="stylesheet">
+<!-- 顶部滚动条-->
+<script src="https://cdn.jsdelivr.net/gh/djyde/ToProgress/ToProgress.min.js"></script>
 <script type="text/javascript">
+  let progressBar = new ToProgress({
+    color: getComputedStyle(document.documentElement).getPropertyValue('--primary-color')
+  })
+  progressBar.reset()
+  // 如未做大幅修改，请保留下方内容
+  $('#poweredby').append('&nbsp;&&nbsp;<a href="https://github.com/makergyt/cnblogs-theme-next">cnblogs-theme-next</a>')
+  // 获取默认基础信息
+  window.isPost = $('.forFlow').find('#post_detail').length ? true : false;
+  window.blogSlug = currentBlogApp;
+  var footerOverTestArray = $($("#footer")[0].childNodes[2]).text().trim().split(" ");
 
-// 如未做大幅修改，请保留下方内容
-$('#poweredby').append('&nbsp;&&nbsp;<a href="https://github.com/makergyt/cnblogs-theme-next">cnblogs-theme-next</a>')
-// 获取默认基础信息
-var isPost = $('.forFlow').find('#post_detail').length?true:false;
-var blogSlug = currentBlogApp;
-var footerOverTestArray = $($("#footer")[0].childNodes[2]).text().trim().split(" ");
+  config = Object.assign({
+    siteTitle: $('#Header1_HeaderTitle').text(),
+    author: footerOverTestArray[footerOverTestArray.length - 1],
+    avatar: $('.author_avatar').attr('src'),
+    github: blogSlug,
+    gallery: null
+  }, config);
 
-config = Object.assign({
-  siteTitle: $('#Header1_HeaderTitle').text(),
-  author:footerOverTestArray[footerOverTestArray.length - 1],
-  avatar:$('.author_avatar').attr('src'),
-  github:blogSlug
-}, config);
-
-var linkObject = document.createElement("link");
+  var linkObject = document.createElement("link");
   linkObject.rel = "shortcut icon";
   linkObject.href = config.avatar;
 
-// var siteTitle = $('#Header1_HeaderTitle').text();
-// var footerOverTestArray = $($("#footer")[0].childNodes[2]).text().trim().split(" ");
-// var author = footerOverTestArray[footerOverTestArray.length - 1];
-// // var author = $('#profile_block a:first').text().trim(); // 时序不一致,有可能为空
-// var avatar = $('.author_avatar').attr('src')
-
-
-// 设置摘要
-function setDesc() {
-  $('#cnblogs_post_description').css('display', 'block')
-  $('#cnblogs_post_description').prepend('<h3 id="post-description-meta">摘 要</h3>')
-  // 由于标签是网络请求，可能在修改dom后返回，故重新请求后再修改
-  $.ajax({
-    url: getAjaxBaseUrl() + "CategoriesTags.aspx",
-    type: "get",
-    contentType: "application/json; charset=utf-8",
-    data: {
-      blogId: cb_blogId,
-      postId: cb_entryId,
-    },
-    cache: !1,
-    dataType: "text",
-    timeout: 1e4,
-    success: function (n) {
-      n && $("#cnblogs_post_description").append(n.replace('EntryTag', 'post-keyword').replace('标签', '关键词'))
-      $('#EntryTag').remove()
-    }
-  })
-}
-// 设置参考文献标题
-function setFoot() {
-  $('.footnotes').prepend('<h2 id="-参考文献" class="footnotes-meta">参 考 文 献</h2>')
-}
-// 设置左侧目录
-function setContent() { 
-  if($('#post-toc-wrap').length) return;
-  var toc = $('<div id="post-toc-wrap"><h3 style="text-align:center">目录</h3></div>')
-  $('#blog-news').prepend(toc)
-  var captions_ori = $("#cnblogs_post_body h2"),
-    captions_ori2 = $("#cnblogs_post_body h3"),
-    captions = $("#cnblogs_post_body h2,#cnblogs_post_body h3").clone(),
-    content = $("<ol id='post-toc'></ol>");
-
-  toc.append(content.append(captions));
-  var index = -1, index2 = -1;
-  captions.replaceWith(function () {
-    var self = this;
-    if (self.tagName == "H2" || self.tagName == "h2") {
-      // 设置点击目录跳转
-      index += 1;
-      $('<a name="' + '_caption_' + index + '"></a>').insertBefore(captions_ori[index]);
-      return '<li id="' + index + 'li"><a href="#_caption_' + index + '">' + self.innerHTML + '</a><ol></ol></li>';
-    } else {
-      index2 += 1;
-      $('<a name="' + '_caption' + index2 + '"></a>').insertBefore(captions_ori2[index2]);
-      $("#" + index + "li ol").append("<li><a href='#_caption" + index2 + "' style='color:#5f5f5f;'>" + self.innerHTML + "</a></li>");
-      return;
-    }
-  });
-}
-function onScroll() {
-  // 上拉至指定位置贴顶
-  var oldScrollNum = 0;
-  window.onscroll = function () {
-    var t = document.documentElement.scrollTop || document.body.scrollTop;
-    if (t > oldScrollNum) {
-      if (t>135) {
-        $('.site-author').remove() 
-        setContent()
+  // 设置摘要
+  function setDesc() {
+    $('#cnblogs_post_description').css('display', 'block')
+    $('#cnblogs_post_description').prepend('<h3 id="post-description-meta">摘 要</h3>')
+    // 由于标签是网络请求，可能在修改dom后返回，故重新请求后再修改
+    $.ajax({
+      url: getAjaxBaseUrl() + "CategoriesTags.aspx",
+      type: "get",
+      contentType: "application/json; charset=utf-8",
+      data: {
+        blogId: cb_blogId,
+        postId: cb_entryId,
+      },
+      cache: !1,
+      dataType: "text",
+      timeout: 1e4,
+      success: function (n) {
+        n && $("#cnblogs_post_description").append(n.replace('EntryTag', 'post-keyword').replace('标签', '关键词'))
+        $('#EntryTag').remove()
       }
-      if (t > 270) {
-        $("#post-toc-wrap").addClass("affix");
-      }
-    } else {
-      if(t <= 135 ) {
-        $('#post-toc-wrap').remove()
-        setAuthor()
-      }
-      if (t <= 270) {
-        $("#post-toc-wrap").removeClass("affix");
-      }
-    }
-    oldScrollNum = t;
+    })
   }
-}
-function setAuthor() {
-  if($('.site-author').length) return;
-  var siteAuthor = $('<div class="site-author motion-element"><img class="site-author-image" src="'+config.avatar+'"><p class="site-author-name">'+config.author+'</p></div>');
-  siteAuthor.append('<div class="site-state">'+$('.blogStats').html()+'</div>')
-  $('#blog-news').prepend(siteAuthor)
-}
-// 设置导航区
-function setNav() {
-  $('.brand').attr('href','/'+blogSlug)
-  $('.site-title').text(config.siteTitle)
-  $('.menu-item-home a:first').attr('href','/'+blogSlug)
-  $('.menu-item-contact a:first').attr('href','https://msg.cnblogs.com/send/'+config.author)
-  $('.menu-item-subscribe a:first').attr('data-rss','https://www.cnblogs.com/'+blogSlug+'/rss/')
-}
+  // 设置参考文献标题
+  function setFoot() {
+    $('.footnotes').prepend('<h2 id="-参考文献" class="footnotes-meta">参 考 文 献</h2>')
+  }
+  // 设置左侧目录
+  function setContent() {
+    if ($('#post-toc-wrap').length) return;
+    var toc = $('<div id="post-toc-wrap"><h3 style="text-align:center">目录</h3></div>')
+    $('#blog-news').prepend(toc)
+    var captions_ori = $("#cnblogs_post_body h2"),
+      captions_ori2 = $("#cnblogs_post_body h3"),
+      captions = $("#cnblogs_post_body h2,#cnblogs_post_body h3").clone(),
+      content = $("<ol id='post-toc'></ol>");
 
-// 设置右上角github跳转链接
-function setGithub() {
-  $('.github-corner').attr('href', 'https://github.com/'+config.github)
-}
-// 在响应式设计中，菜单折叠打开事件
-function setToggle() {
-  document.querySelector('.site-nav-toggle .toggle').addEventListener('click', () => {
-    event.currentTarget.classList.toggle('toggle-close');
-    var e = document.querySelector('.site-nav'),
-      t = e.classList.contains('site-nav-on') ? 'slideUp' : 'slideDown';
-    'function' == typeof Velocity ? Velocity(e, t, {
-      duration: 200,
-      complete: function () {
-        e.classList.toggle('site-nav-on')
+    toc.append(content.append(captions));
+    toc.append('<div class="back-to-top" onclick="toScroll(0,500)"><i class="fa fa-arrow-up"></i>&nbsp;<span id="btc-persent">0%</span></div>')
+
+    var index = -1, index2 = -1;
+    captions.replaceWith(function () {
+      var self = this;
+      if (self.tagName == "H2" || self.tagName == "h2") {
+        // 设置点击目录跳转
+        index += 1;
+        $('<a name="' + '_caption_' + index + '"></a>').insertBefore(captions_ori[index]);
+        return '<li id="' + index + 'li"><a href="#_caption_' + index + '">' + self.innerHTML + '</a><ol></ol></li>';
+      } else {
+        index2 += 1;
+        $('<a name="' + '_caption' + index2 + '"></a>').insertBefore(captions_ori2[index2]);
+        $("#" + index + "li ol").append("<li><a href='#_caption" + index2 + "' style='color:#5f5f5f;'>" + self.innerHTML + "</a></li>");
+        return;
       }
-    }) : e.classList.toggle('site-nav-on')
-  });
-}
-setGithub();
-setToggle();
-setNav();
-setTimeout(() => {
-  setAuthor();
-}, 500);
-// 只对文章页
-if (isPost) {
-  setFoot();
-  onScroll();
-  // 由于加载需要时间故增加延时后操作
+    });
+  }
+  // 滚动至顶部
+  function toScroll(endScroll, time) {
+    $('html,body').stop().animate({ scrollTop: endScroll }, time);
+  }
+  function onScroll() {
+    // 上拉至指定位置贴顶
+    var oldScrollNum = 0;
+
+    window.onscroll = function () {
+      var t = document.documentElement.scrollTop || document.body.scrollTop;
+      if (t > oldScrollNum) {
+        if (t > 135) {
+          $('.site-author').remove()
+          $('#sidebar_categories').hide()
+          setContent()
+        }
+        if (t > 270) {
+          $("#post-toc-wrap").addClass("affix");
+        }
+      } else {
+        if (t <= 135) {
+          $('#post-toc-wrap').remove()
+          $('#sidebar_categories').show()
+          setAuthor()
+        }
+        if (t <= 270) {
+          $("#post-toc-wrap").removeClass("affix");
+        }
+      }
+      oldScrollNum = t;
+      // 滚动条
+      var docHeight = $(document).height(),
+        windowHeight = $(window).height(),
+        scrollPercent = (t / (docHeight - windowHeight)) * 100;
+      progressBar.setProgress(scrollPercent);
+      $('#btc-persent').replaceWith('<span id="btc-persent">' + scrollPercent.toFixed() + '%</span>')
+    }
+  }
+  function setAuthor() {
+    if ($('.site-author').length) return;
+    var siteAuthor = $('<div class="site-author motion-element"><img class="site-author-image" src="' + config.avatar + '"><p class="site-author-name">' + config.author + '</p></div>');
+    siteAuthor.append('<div class="site-state">' + $('.blogStats').html() + '</div>')
+    var links = $('<div class="links-of-author"></div>')
+    links.append('<div class="links-of-author-item"><a href="https://msg.cnblogs.com/send/'+ config.author+'"><i class="fa fa-fw fa-envelope"></i></a></div>'
+      +'<div class="links-of-author-item"><a id="blog_nav_rss" href="https://www.cnblogs.com/'+blogSlug+'/rss/" data-rss="https://www.cnblogs.com/'+blogSlug+'/rss/" style="display: inline !important;"><i class="fa fa-fw fa-rss"></i></a></div>')
+    $('#blog-news').prepend(siteAuthor.append(links))
+  }
+  // 设置导航区
+  function setNav() {
+    var url = window.location.href;
+    $('.brand').attr('href', '/' + blogSlug)
+    $('.site-title').text(config.siteTitle)
+    $('.menu-item-home a:first').attr('href', '/' + blogSlug)
+    $('.menu-item-archives a:first').attr('href', '/' + blogSlug+'/p')
+    if(config.gallery) {
+      $('.menu-item-gallery a:first').attr('href', '/' + blogSlug+'/gallery/'+config.gallery+'.html')
+      $('.menu-item-gallery').css('display','block')
+
+      if(/gallery/.test(url)){
+        $('.menu-item-home').removeClass('menu-item-active')
+        $('.menu-item-gallery').addClass('menu-item-active')
+      }
+    }
+    
+    if(/(\/p)$/.test(url)) {
+      $('.menu-item-home').removeClass('menu-item-active')
+      $('.menu-item-archives').addClass('menu-item-active')
+    } 
+  }
+
+  // 设置右上角github跳转链接
+  function setGithub() {
+    $('.github-corner').attr('href', 'https://github.com/' + config.github)
+  }
+  // 在响应式设计中，菜单折叠打开事件
+  function setToggle() {
+    document.querySelector('.site-nav-toggle .toggle').addEventListener('click', () => {
+      event.currentTarget.classList.toggle('toggle-close');
+      var e = document.querySelector('.site-nav'),
+        t = e.classList.contains('site-nav-on') ? 'slideUp' : 'slideDown';
+      'function' == typeof Velocity ? Velocity(e, t, {
+        duration: 200,
+        complete: function () {
+          e.classList.toggle('site-nav-on')
+        }
+      }) : e.classList.toggle('site-nav-on')
+    });
+  }
+  function setCommentStyle() {
+    let t = $(".feedbackItem");
+    if (t.length > 0) {
+      $.each(t, function (t) {
+        let e = $(this)
+          , n = e.find(".feedbackCon")
+          , o = e.find(".feedbackListSubtitle")
+          , i = n.length ? n.find(".blog_comment_body") : []
+          , s = ""
+          , a = i.length ? i.attr("id").split("_") : void 0;
+        if (a && a.length > 0) {
+          let t = a[a.length - 1]
+            , n = t.toString().match(/[0-9]/g);
+          $.isArray(n) && (t = n.join(""));
+          let o = $("#comment_" + t + "_avatar")
+            , i = o.length > 0 ? $.trim(o.text()) : "https://cdn.jsdelivr.net/gh/BNDong/Cnblogs-Theme-SimpleMemory@master/img/webp/default_avatar.webp"
+            , l = $("#a_comment_author_" + t)
+            , c = l.length ? l.attr("href") : "javascropt:void(0);";
+          s = '<div class="feedbackAvatar"><a href="' + c + '" target="_blank"><img src="' + i + '"/></a></div>',
+            e.prepend(s)
+        }
+        o.length && o.find(".louzhu").length && o.addClass("feedbackListSubtitle-louzhu")
+      })
+    }
+  }
+  function setPreNext() {
+    var pnp = $("#post_next_prev a");
+    if(!pnp.length) return;
+    var cont = $('#post_next_prev').text();
+    var wrapper = $('<div class="post_next_prev"><div class="pre-block"></div><div class="next-block"></div></div>')
+    $("#post_next_prev").replaceWith(wrapper)
+    var pre = $('<a href="'+pnp[1].href+'"><div class="post_next_prev_label">&#9668上一篇</div><div>'+pnp[1].innerText+'</div></a>')
+    
+    if(pnp.length>2){
+      $('.pre-block').append(pre)
+      var next = $('<a href="'+pnp[3].href+'"><div class="post_next_prev_label">下一篇&#9658</div><div>'+pnp[3].innerText+'</div></a>')
+      $('.next-block').append(next)
+    } else {
+      if(/上一篇/.test(cont)) {
+        $('.pre-block').append(pre)
+      } else if(/下一篇/.test(cont)) {
+        var next = $('<a href="'+pnp[1].href+'"><div class="post_next_prev_label">下一篇&#9658</div><div>'+pnp[1].innerText+'</div></a>')
+        $('.next-block').append(next)
+      }
+    }
+  }
+  setGithub();
+  setToggle();
+  setNav();
   setTimeout(() => {
-    setDesc();
+    setAuthor();
   }, 500);
-}
+  // 只对文章页
+  if (isPost) {
+    setFoot();
+    // 由于加载需要时间故增加延时后操作
+    setTimeout(() => {
+      setDesc();
+      setPreNext();
+      onScroll();
+    }, 500);
+    setTimeout( () => {
+      setCommentStyle()
+    }, 1000)
+  }
 </script>
